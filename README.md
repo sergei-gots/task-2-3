@@ -11,7 +11,8 @@ The compiled file will be stored in `target` folder as `task3.war`
 ```
 mvn tomcat7:run
 ```
-The servlet can be executed in browser by path `http://localhost:8081/hello`
+
+The servlet can be executed in browser by path  `http://localhost:8080/getCustomers'
 
 ## Run in docker
 After compile app just run next
