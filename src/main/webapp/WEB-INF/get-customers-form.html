@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task3: getCustomers</title>
+</head>
+<body>
+
+<form id="myForm" action="/getCustomers" method="post">
+    <label for="offset">Input start offset:</label>
+    <input type="number" name="offset" id="offset" required min="0" max="100000000">
+    <button type="button" onclick="submitForm()">Submit</button>
+</form>
+
+<br>
+<div id="response"></div>
+
+
+<script>
+    async function submitForm() {
+        var offsetValue = document.getElementById("offset").value;
+
+        if (isNaN(offsetValue)) {
+            alert("Offset is a number.");
+            return;
+        }
+
+        if (offsetValue < 0 || offsetValue > 1000000) {
+            alert("Offset value can be >= 0 and <=1 000 000.");
+            return;
+        }
+
+        var jsonData = {
+            "offset": offsetValue
+        };
+
+        try {
+            var response = await fetch("/getCustomers", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json;charset=UTF-8"
+                },
+                body: JSON.stringify(jsonData)
+            });
+
+            if (response.ok) {
+                // Получаем текст ответа
+                var responseData = await response.text();
+
+                // Заменяем содержимое div с id "response" новым содержимым
+                document.getElementById("response").innerHTML = responseData;
+            } else {
+                console.error("Request error. Status: " + response.status);
+            }
+        } catch (error) {
+            console.error("Error: " + error.message);
+        }
+    }
+</script>
+</body>
+</html>
