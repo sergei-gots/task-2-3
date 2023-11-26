@@ -21,4 +21,4 @@ docker run -i --rm --name task3-app -p 8080:8080 \
   tomcat:9.0-jre8-alpine
 ```
 And for opening the Servlet run in browser `http://localhost:8080/getCustomers'
-In order to create or validate data in db run `http://localhost:8080/validateData'
+To create or validate data in db run `http://localhost:8080/validateData'
