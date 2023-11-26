@@ -22,4 +22,5 @@ docker run -i --rm --name task3-app -p 8080:8080 \
 ```
 
 And for opening the Servlet run in browser `http://localhost:8080/getCustomers'
+
 To create or validate data in db run `http://localhost:8080/validateData'
