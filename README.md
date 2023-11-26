@@ -1,5 +1,5 @@
 # java-servlet-hello
-/getCustomersd web application with Maven + Java + Servlets + Tomcat
+<b>/getCustomers</b> web application with Maven + Java + Servlets + Tomcat
 
 ## Compile app 
 ```
