@@ -8,29 +8,38 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 
          metadata-complete="true">
-  <session-config>
-    <tracking-mode>COOKIE</tracking-mode>
-  </session-config>
+    <session-config>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
 
-<servlet>
-  <servlet-name>GetCustomersServlet</servlet-name>
-  <servlet-class>org.task2.task23.servlet.Task3Servlet</servlet-class>
-</servlet>
+    <servlet>
+        <servlet-name>Task23Servlet</servlet-name>
+        <servlet-class>org.task2.task23.servlet.Task23Servlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Task23Servlet</servlet-name>
+        <url-pattern>/task-2-3/start</url-pattern>
+    </servlet-mapping>
 
-  <servlet>
-    <servlet-name>ValidateDataServlet</servlet-name>
-    <servlet-class>org.task2.task23.servlet.ValidateDataServlet</servlet-class>
-  </servlet>
+
+    <servlet>
+        <servlet-name>GetCustomersServlet</servlet-name>
+        <servlet-class>org.task2.task23.servlet.GetCustomersServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GetCustomersServlet</servlet-name>
+        <url-pattern>/task-2-3/getCustomers</url-pattern>
+    </servlet-mapping>
 
 
-  <servlet-mapping>
-  <servlet-name>GetCustomersServlet</servlet-name>
-  <url-pattern>/getCustomers</url-pattern>
-</servlet-mapping>
+    <servlet>
+        <servlet-name>ValidateDataServlet</servlet-name>
+        <servlet-class>org.task2.task23.servlet.ValidateDataServlet</servlet-class>
+    </servlet>
 
-  <servlet-mapping>
-    <servlet-name>ValidateDataServlet</servlet-name>
-    <url-pattern>/validateData</url-pattern>
-  </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ValidateDataServlet</servlet-name>
+        <url-pattern>/task-2-3/validateData</url-pattern>
+    </servlet-mapping>
 
 </web-app>

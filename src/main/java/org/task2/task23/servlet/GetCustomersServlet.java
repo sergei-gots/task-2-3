@@ -3,34 +3,38 @@ package org.task2.task23.servlet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.task2.task23.service.Initializer;
 import org.task2.task23.service.Service;
 import org.task2.task23.service.ServiceFactory;
 
-import java.io.*;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
-public class Task3Servlet extends HttpServlet {
+public class GetCustomersServlet extends HttpServlet
+implements ServletUtil{
 
-    private final Initializer initializer = ServiceFactory.getInitializerInstance();
     private final Service service = ServiceFactory.getServiceInstance();
 
+    @Override
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response)
-             throws IOException {
-        // Установите тип контента в "text/html", чтобы браузер знал, что это HTML-содержимое
+            throws IOException {
+
+        System.out.println(getClass().getSimpleName() + ".doGet() is invoked");
+
+        writeFileToResponse(response, "/WEB-INF/get-customers-form.html");
+    }
+    private void writeFileToResponse (HttpServletResponse response, String relativeFilePath)
+    throws IOException {
+
         response.setContentType("text/html; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        // Получите объект PrintWriter из HttpServletResponse для записи HTML-кода
         try (PrintWriter out = response.getWriter()) {
-            // Указываете путь к вашему HTML-файлу внутри проекта
-            String filePath = getServletContext().getRealPath("/WEB-INF/get-customers-form.html");
+            String filePath = getServletContext().getRealPath(relativeFilePath);
 
-            // Читаем содержимое HTML-файла
             try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -40,16 +44,16 @@ public class Task3Servlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Устанавливаем кодировку для чтения данных из тела запроса
+            throws IOException {
+        System.out.println(getClass().getSimpleName() + ".doPost() is invoked");
+
         request.setCharacterEncoding("UTF-8");
 
-        // Получаем BufferedReader из тела запроса
         try (BufferedReader reader =
                      new BufferedReader(
-                             new InputStreamReader(request.getInputStream(), "UTF-8"))) {
-            // Читаем данные из BufferedReader
+                             new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8))) {
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -65,8 +69,14 @@ public class Task3Servlet extends HttpServlet {
                 JsonElement offsetElement = jsonObject.get("offset");
                 if (offsetElement != null && offsetElement.isJsonPrimitive()) {
                     int offsetValue = offsetElement.getAsInt();
-                    response.setContentType("text/plain");
-                    response.getWriter().write("JSON received successfully and contains the offset=" + offsetValue);
+                    PrintWriter out =  response.getWriter();
+                    out.println(head("GetCustomer"));
+                    out.print("<body>JSON received successfully and contains the offset=");
+                    out.println(offsetValue);
+                    out.println("<br><br>");
+                    out.println("back to /getCustomers page:");
+                    out.println(href("Get Customers", "/getCustomers"));
+                    out.println("</body></html>");
                     return;
                 }
             }
@@ -74,25 +84,6 @@ public class Task3Servlet extends HttpServlet {
         } catch (IOException e) {
             e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error reading JSON or offset value from it from request");
-        }
-    }
-    public void doPost1(HttpServletRequest request,
-                      HttpServletResponse response)
-             throws IOException {
-        response.setContentType("text/html");
-
-        // Получите объект PrintWriter из HttpServletResponse для записи HTML-кода
-        try (PrintWriter out = response.getWriter()) {
-            // Здесь вы можете написать HTML-код, который вы хотите вернуть клиенту
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>This is a doPost:)</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Hello, this is my DoPost method!</h1>");
-            out.println("</body>");
-            out.println("</html>");
         }
     }
 }

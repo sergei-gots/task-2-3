@@ -9,44 +9,40 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.sql.SQLException;
 
-public class ValidateDataServlet extends HttpServlet {
+public class ValidateDataServlet extends HttpServlet
+                                implements ServletUtil {
 
     private final Initializer initializer = ServiceFactory.getInitializerInstance();
 
+    @Override
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response)
              throws IOException {
 
+        System.out.println(getClass().getSimpleName() + ".doGet() is invoked");
+        response.setContentType("text/html; charset=UTF-8");
 
         try {
             initializer.validateData();
         }
         catch (SQLException e) {
             e.printStackTrace();
-            response.setContentType("text/plain");
-            response.getWriter().write("Could not validate data. Cause:" + e.getCause());
+            //response.getWriter().write("Could not validate data. Cause:" + e.getCause());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Error validating data. Cause: " + e.getCause());
             return;
         }
 
-        response.setContentType("text/html; charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
-
-        if (!response.isCommitted()) {
-            response.sendRedirect("/getCustomers");
-        }
-
         try (PrintWriter out = response.getWriter()) {
-            String filePath = getServletContext().getRealPath("/WEB-INF/get-customers-form.html");
-
-            // Читаем содержимое HTML-файла
-            try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    out.println(line);
-                }
-            }
+            out.println(head("Data validation"));
+            out.println("<body>Data is ready to use with /getCustomers-request:");
+            out.println("<br><br>");
+            out.println(href("Get Customers", "/getCustomers"));
+            out.println("</body></html>");
         }
 
+//        response.sendRedirect(request.getContextPath() + "/task-2-3/getCustomers");
     }
+
 
 }
