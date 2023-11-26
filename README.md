@@ -20,5 +20,6 @@ docker run -i --rm --name task3-app -p 8080:8080 \
   -v ${PWD}/target/hello.war:/usr/local/tomcat/webapps/taks3.war \
   tomcat:9.0-jre8-alpine
 ```
+
 And for opening the Servlet run in browser `http://localhost:8080/getCustomers'
 To create or validate data in db run `http://localhost:8080/validateData'
