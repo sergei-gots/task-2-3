@@ -5,7 +5,7 @@
 ```
 mvn clean install
 ```
-The compiled file will been stored in `target` folder as `task3.war`
+The compiled file will be stored in `target` folder as `task3.war`
 
 ## Run app 
 ```
