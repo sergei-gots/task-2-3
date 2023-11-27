@@ -69,8 +69,8 @@ Validation is implemented here in order to have possibiltiy to check and fix the
 <br>One can run validation data in cases:<br>
 <li> The first start on the server when there is no data in the db
 <li> if the count of customers is less than required (it is defined as a constant: 
-```
-org.task2.task23.service.DbConstants.CUSTOMER_COUNT_BY_DEFAULT = 500_000;
-```
+
+<b>org.task2.task23.service.DbConstants.CUSTOMER_COUNT_BY_DEFAULT = 500_000;</b>
+
 <li> some tables are missing. Note that is not a customer table, there won't be any additional data entries created
 
