@@ -33,7 +33,9 @@ public class GetCustomerServiceImpl implements GetCustomersService {
 
             sqlStatement
                     = connection.prepareStatement(""" 
-                    SELECT * FROM customer c
+                    SELECT *
+                    FROM customer c
+                    
                     LEFT JOIN table_1 t0 ON c.customer_id = t0.customer_id
                     LEFT JOIN table_1 t1 ON c.customer_id = t1.customer_id
                     LEFT JOIN table_2 t2 ON c.customer_id = t2.customer_id
@@ -64,11 +66,19 @@ public class GetCustomerServiceImpl implements GetCustomersService {
                     LEFT JOIN table_27 t27 ON c.customer_id = t27.customer_id
                     LEFT JOIN table_28 t28 ON c.customer_id = t28.customer_id
                     LEFT JOIN table_29 t29 ON c.customer_id = t29.customer_id
+                    
+                    LEFT JOIN (
+                         SELECT customer_id, ARRAY_TO_STRING(ARRAY_AGG(table_many.group_id), ',') AS groupid
+                         FROM table_many
+                         GROUP BY customer_id
+                    ) AS many_group ON c.customer_id = many_group.customer_id
+                    
                     ORDER BY c.customer_id
                     OFFSET ? ROWS
                     LIMIT 5000
                     
                 """);
+            
             sqlStatement.setInt(1, offset);
 
             logger.info("sqlStatement.executeQuery()");
@@ -87,6 +97,7 @@ public class GetCustomerServiceImpl implements GetCustomersService {
                     }
                     cols[k] = resultSet.getInt(j);
                 }
+                customerInfo.setGroups(resultSet.getString(GRAND_TOTAL_COL_COUNT + 2));
             }
             logger.info("List completed");
             return customerList;

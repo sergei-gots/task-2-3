@@ -29,8 +29,6 @@ public class InitializerImpl implements Initializer {
     }
 
     private int tableICount;
-    private int customerCount;
-
     private Connection connection = null;
     private final Random random = new Random();
     private final Faker faker = new Faker();
@@ -73,7 +71,7 @@ public class InitializerImpl implements Initializer {
             resultSet = sqlStatement.executeQuery();
             resultSet.next();
             boolean result = resultSet.getBoolean(1);
-            logger.info("doesTableExist return {})", result);
+            logger.info("doesTableExist({})={})", tableName, result);
             return result;
 
         } catch (SQLException e) {
@@ -155,28 +153,21 @@ public class InitializerImpl implements Initializer {
             sqlStatement = connection.prepareStatement("""
                     CREATE TABLE table_many (
                         customer_id VARCHAR(200) NOT NULL REFERENCES customer (customer_id),
-                        groupId INT NOT NULL
+                        group_id INT NOT NULL
                     )""");
             sqlStatement.execute();
 
-            sqlStatement = connection.prepareStatement("""
-                        ALTER TABLE table_many
-                                            ADD CONSTRAINT unique_customer_group
-                                            UNIQUE (customer_id, groupId)
-                    """);
-            sqlStatement.execute();
         } catch (SQLException e) {
             DbUtils.closeQuietly(sqlStatement);
             throw e;
         }
     }
-
     private void validateTableCustomerData() throws SQLException {
         logger.info("validateTableCustomerData()");
 
-        alterIndexIdxCustomerIdOnCustomer(false);
         PreparedStatement sqlStatement = null;
         ResultSet resultSet = null;
+        int customerCount;
         try {
             sqlStatement = connection.prepareStatement(
                     "SELECT COUNT(*) as row_count FROM Customer"
@@ -185,16 +176,23 @@ public class InitializerImpl implements Initializer {
             resultSet.next();
             customerCount = resultSet.getInt(1);
 
+            boolean idxRebuild = (CUSTOMER_COUNT_BY_DEFAULT - customerCount) > IDX_DROP_DIFF_THRESHOLD;
+            if(idxRebuild) {
+                dropIdx();
+            }
+
             while (customerCount++ < CUSTOMER_COUNT_BY_DEFAULT) {
-                generateInsertsIntoTables_I(generateCustomer());
-                if (customerCount%1000 == 0) {
+                generateCustomer();
+                if (customerCount %1000 == 0) {
                     logger.info(
                             "validateTableCustomerData() : current customerCount={}",
                             customerCount);
                 }
-
             }
-            alterIndexIdxCustomerIdOnCustomer(true);
+
+            if(idxRebuild) {
+                buildIdx();
+            }
 
         } catch (SQLException e) {
             DbUtils.closeQuietly(resultSet);
@@ -202,19 +200,43 @@ public class InitializerImpl implements Initializer {
             throw e;
         }
 
+        customerCount--;
+        logger.info("validateTableCustomerData() : current customerCount={}. Method completed successfully.",
+                customerCount);
     }
 
-    private void generateInsertsIntoTables_I(String customerId) throws SQLException {
+    private void buildIdx() {
+        logger.info("buildIdx()");
+
+        buildIdx("customer");
+                for (int i = 0; i < TABLE_I_COUNT_BY_DEFAULT; i++) {
+            buildIdx("table_" + i);
+        }
+        buildIdx("table_many");
+    }
+
+    private void dropIdx() {
+        logger.info("dropIdx()");
+
+        dropIdx("customer");
+                for (int i = 0; i < TABLE_I_COUNT_BY_DEFAULT; i++) {
+            dropIdx("table_" + i);
+        }
+        dropIdx("table_many");
+    }
+
+    private void generateInsertsIntoTablesI(String customerId) throws SQLException {
+
         long x = random.nextLong();
         long mask = 1;
         for(int i = 0; i < tableICount; i++, mask = mask << 1) {
             if ((mask & x) != 0) {
-                generateInsertIntoTable_I(i, customerId);
+                generateInsertIntoTableI(i, customerId);
             }
         }
     }
 
-    private void generateInsertIntoTable_I (int tableIndex, String customerId) throws SQLException {
+    private void generateInsertIntoTableI(int tableIndex, String customerId) throws SQLException {
         PreparedStatement sqlStatement = null;
 
         try {
@@ -230,14 +252,10 @@ public class InitializerImpl implements Initializer {
             DbUtils.closeQuietly(sqlStatement);
             throw e;
         }
-
-
     }
 
-    /**
-     * @return value of the generated customer_id.
-     */
-    private String generateCustomer() throws SQLException {
+    private void generateCustomer() throws SQLException {
+        String customerId;
         PreparedStatement sqlStatement = null;
 
         try {
@@ -245,18 +263,21 @@ public class InitializerImpl implements Initializer {
                         INSERT INTO Customer (customer_id, col_1, col_2, col_3, col_4, col_5)
                                     VALUES (?, ?, ?, ?, ?, ?)
                     """);
-            String customerId = generateCustomerId();
+            customerId = generateCustomerId();
             sqlStatement.setString(1, customerId);
             for (int i = 2; i <= TOTAL_COL_COUNT; i++) {
                 sqlStatement.setInt(i, random.nextInt());
             }
             sqlStatement.execute();
-            return customerId;
+
 
         } catch (SQLException e) {
             DbUtils.closeQuietly(sqlStatement);
             throw e;
         }
+
+        generateInsertsIntoTablesI(customerId);
+        generateInsertsIntoTableMany(customerId);
 
     }
 
@@ -264,7 +285,7 @@ public class InitializerImpl implements Initializer {
 
         PreparedStatement sqlStatement = null;
         ResultSet resultSet = null;
-        String name = null;
+        String name;
         try {
             sqlStatement = connection.prepareStatement(
                     "SELECT COUNT(*) as row_count FROM Customer WHERE customer_id=?"
@@ -286,30 +307,80 @@ public class InitializerImpl implements Initializer {
 
     }
 
-    private void alterIndexIdxCustomerIdOnCustomer(boolean enable)  {
-        logger.info("alterIndexIdxCustomerIdOnCustomer(enable={})", enable );
+    private void generateInsertsIntoTableMany (String customerId) throws SQLException {
+
+        PreparedStatement sqlStatement = null;
+
+        int groupCount = random.nextInt(MAX_GROUP_PER_CAPITA_COUNT);
+
+        try {
+            for (int i = 0; i < groupCount; i++) {
+                sqlStatement = connection.prepareStatement(
+                        "INSERT INTO table_many (customer_id, group_id) VALUES (?,?)"
+                );
+                sqlStatement.setString(1, customerId);
+                sqlStatement.setInt(2, random.nextInt());
+                sqlStatement.execute();
+            }
+        } catch (SQLException e) {
+            DbUtils.closeQuietly(sqlStatement);
+            throw e;
+        }
+    }
+
+    private void buildIdx(String tableName)  {
+        logger.info("buildIdx(tableName={})", tableName );
 
         PreparedStatement sqlStatement = null;
         ResultSet resultSet = null;
 
         try {
             sqlStatement = connection.prepareStatement(
-                            "SELECT indexname FROM pg_indexes WHERE indexname='idx_customer_id'"
+                        "SELECT indexname FROM pg_indexes WHERE indexname='idx_" + tableName + "'"
             );
+
+            resultSet = sqlStatement.executeQuery();
+            if(resultSet.next()) {
+                return;
+            }
+
+            sqlStatement = connection.prepareStatement(
+                            "CREATE INDEX idx_" + tableName + " ON " + tableName + "(customer_id)"
+            );
+            sqlStatement.execute();
+
+        } catch (SQLException e) {
+            logger.info("buildIdx: SQLException caught", e );
+            DbUtils.closeQuietly(resultSet);
+            DbUtils.closeQuietly(sqlStatement);
+        }
+    }
+
+
+    private void dropIdx(String tableName)  {
+        logger.info("dropIdx(tableName={})", tableName );
+
+        PreparedStatement sqlStatement = null;
+        ResultSet resultSet = null;
+        String idxName = "'idx_" + tableName + "'";
+        try {
+            sqlStatement = connection.prepareStatement(
+                    "SELECT indexname FROM pg_indexes WHERE indexname=" + idxName
+            );
+
             resultSet = sqlStatement.executeQuery();
             if(!resultSet.next()) {
                 return;
             }
 
             sqlStatement = connection.prepareStatement(
-                    enable ?
-                            "CREATE INDEX idx_customer_id ON customer (customer_id)" :
-                            "DROP INDEX idx_customer_id"
+                    "DROP INDEX " + idxName
             );
             sqlStatement.execute();
 
         } catch (SQLException e) {
-            logger.info("alterIndexIdxCustomerIdOnCustomer. SQLException caught", e );
+            logger.info("dropIdx: SQLException caught", e );
+            DbUtils.closeQuietly(resultSet);
             DbUtils.closeQuietly(sqlStatement);
         }
     }

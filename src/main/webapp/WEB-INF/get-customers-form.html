@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<form id="myForm" action="/getCustomers" method="post">
+<form id="offsetForm" action="/task-2-3/getCustomers" method="post" onsubmit="return false">>
     <label for="offset">Input start offset:</label>
     <input type="number" name="offset" id="offset" required min="0" max="100000000">
     <button type="button" onclick="submitForm()">Submit</button>
@@ -23,12 +23,12 @@
 
         if (isNaN(offsetValue)) {
             alert("Offset is a number.");
-            return;
+            return false;
         }
 
         if (offsetValue < 0 || offsetValue > 1000000) {
             alert("Offset value can be >= 0 and <=1 000 000.");
-            return;
+            return false;
         }
 
         var jsonData = {
