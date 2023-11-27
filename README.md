@@ -60,4 +60,14 @@ end-point is available by path  `http://localhost:8080/task-2-3/getCustomer'
 
 And for opening the Servlet run in browser `http://localhost:8080/task-2-3/getCustomers'
 
-To create or validate data in db run `http://localhost:8080/task-2-3/validateData'
+### Data validation
+
+In order to create or validate data in db run `http://localhost:8080/task-2-3/validateData'.
+Validation is implemented here as check 
+<li>if there are all the used tables created and creates them if it necessarty
+<li>checks that customers count in the table customer is not less than it is required and creates the missing count of customers creating all the depending data in all the rest tables.
+One can run validation data in cases:
+<li> The first start on the server when there is no data in the db
+<li> if the count of customers is less than required
+<li> some tables are missing. Note that is not a customer table, there won't be any additional data entries created
+
