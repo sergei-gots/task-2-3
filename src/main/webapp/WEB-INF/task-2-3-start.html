@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 2.3 Start page</title>
+</head>
+<body>
+<h1>Hello, this is a Test Task 2.3</h1>
+<br><br>
+
+<div style="display: none;">
+<%
+String contextPath = request.getContextPath();
+String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+%>
+</div>
+
+Get Customers page
+<a href="/task-2-3/getCustomers">/getCustomers</a>
+<br><br>
+Data validation page
+<a href="/task-2-3/validateData">/validateData</a>
+</body>
+</html>

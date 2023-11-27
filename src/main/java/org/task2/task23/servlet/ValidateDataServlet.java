@@ -3,23 +3,29 @@ package org.task2.task23.servlet;
 import org.task2.task23.service.Initializer;
 import org.task2.task23.service.ServiceFactory;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.sql.SQLException;
 
-public class ValidateDataServlet extends HttpServlet
-                                implements ServletUtil {
+public class ValidateDataServlet extends AbstractServlet {
 
     private final Initializer initializer = ServiceFactory.getInitializerInstance();
 
     @Override
     public void doGet(HttpServletRequest request,
+                       HttpServletResponse response)
+            throws IOException {
+        writeFileToResponse (response, "validate-data-form.html");
+    }
+
+
+    @Override
+    public void doPost(HttpServletRequest request,
                       HttpServletResponse response)
              throws IOException {
 
-        System.out.println(getClass().getSimpleName() + ".doGet() is invoked");
+        logMethodStart("doGet");
         response.setContentType("text/html; charset=UTF-8");
 
         try {

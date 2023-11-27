@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.util.Arrays;
 import java.util.Random;
 
 import org.slf4j.Logger;
@@ -16,8 +18,21 @@ import org.slf4j.LoggerFactory;
 
 public class InitializerImpl implements Initializer {
 
+    public final static int COL_I_AMOUNT = 5;
+    public final static int TOTAL_COL_AMOUNT = COL_I_AMOUNT + 1;
     public final static int TABLE_I_COUNT_BY_DEFAULT = 30;
-    public final static int CUSTOMER_COUNT_BY_DEFAULT = 200_000;
+    public final static int CUSTOMER_COUNT_BY_DEFAULT = 10_000;
+
+    public final static String[] INSERT_INTO_TABLE_I_STATEMENTS = new String[TABLE_I_COUNT_BY_DEFAULT];
+
+    static {
+        Arrays.setAll(INSERT_INTO_TABLE_I_STATEMENTS,
+                i -> "INSERT INTO Table_" + i  + """ 
+                        (customer_id, col_1, col_2, col_3, col_4, col_5)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        """);
+    }
+
     private int tableICount;
     private int customerCount;
 
@@ -169,14 +184,14 @@ public class InitializerImpl implements Initializer {
         ResultSet resultSet = null;
         try {
             sqlStatement = connection.prepareStatement(
-                    "SELECT COUNT(*) as row_count  FROM Customer"
+                    "SELECT COUNT(*) as row_count FROM Customer"
             );
             resultSet = sqlStatement.executeQuery();
             resultSet.next();
             customerCount = resultSet.getInt(1);
 
             while (customerCount++ < CUSTOMER_COUNT_BY_DEFAULT) {
-                generateCustomer();
+                generateInsertsIntoTables_I(generateCustomer());
                 if (customerCount%1000 == 0) {
                     logger.info(
                             "validateTableCustomerData() : current customerCount={}",
@@ -194,6 +209,36 @@ public class InitializerImpl implements Initializer {
 
     }
 
+    private void generateInsertsIntoTables_I(String customerId) throws SQLException {
+        long x = random.nextLong();
+        long mask = 1;
+        for(int i = 0; i < tableICount; i++, mask = mask << 1) {
+            if ((mask & x) != 0) {
+                generateInsertIntoTable_I(i, customerId);
+            }
+        }
+    }
+
+    private void generateInsertIntoTable_I (int tableIndex, String customerId) throws SQLException {
+        PreparedStatement sqlStatement = null;
+
+        try {
+            sqlStatement = connection.prepareStatement(INSERT_INTO_TABLE_I_STATEMENTS[tableIndex]);
+
+            sqlStatement.setString(1, customerId);
+            for (int i = 2; i <= TOTAL_COL_AMOUNT; i++) {
+                sqlStatement.setInt(i, random.nextInt());
+            }
+            sqlStatement.execute();
+
+        } catch (SQLException e) {
+            DbUtils.closeQuietly(sqlStatement);
+            throw e;
+        }
+
+
+    }
+
     /**
      * @return value of the generated customer_id.
      */
@@ -207,7 +252,7 @@ public class InitializerImpl implements Initializer {
                     """);
             String customerId = generateCustomerId();
             sqlStatement.setString(1, customerId);
-            for (int i = 2; i < 7; i++) {
+            for (int i = 2; i <= TOTAL_COL_AMOUNT; i++) {
                 sqlStatement.setInt(i, random.nextInt());
             }
             sqlStatement.execute();
@@ -250,8 +295,17 @@ public class InitializerImpl implements Initializer {
         logger.info("alterIndexIdxCustomerIdOnCustomer(enable={})", enable );
 
         PreparedStatement sqlStatement = null;
+        ResultSet resultSet = null;
 
         try {
+            sqlStatement = connection.prepareStatement(
+                            "SELECT indexname FROM pg_indexes WHERE indexname='idx_customer_id'"
+            );
+            resultSet = sqlStatement.executeQuery();
+            if(!resultSet.next()) {
+                return;
+            }
+
             sqlStatement = connection.prepareStatement(
                     enable ?
                             "CREATE INDEX idx_customer_id ON customer (customer_id)" :

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task3: validateData</title>
+</head>
+<body>
+<h2>Data Validation</h2>
+    creates tables if they are not present in the db
+    and completes the data if it's necessary.
+<form id="submit" action="/task-2-3/validateData" method="post">
+    <label for="pin">To start validation input the pin '1239' here:</label>
+    <input type="number" name="pin" id="pin" required min="1239" max="1239">
+    <button type="button" onclick="submitForm()">Submit</button>
+</form>
+
+<br>
+<hr>
+To /getCustomers-page:
+<div style="display: none;">
+<%
+String contextPath = request.getContextPath();
+String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+%>
+</div>
+<a href="/task-2-3/getCustomers">/getCustomers</a>
+<br>
+<hr>
+<br>
+<br>
+<div id="response"></div>
+
+
+<script>
+    async function submitForm() {
+        var pin = document.getElementById("pin").value;
+
+        if (isNaN(pin) || (pin !== '1239')) {
+            alert("PIN to run data validation must be equal 1239");
+            return;
+        }
+
+
+        try {
+            var response = await fetch("/task-2-3/validateData", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+            });
+
+            if (response.ok) {
+
+                var responseData = await response.text();
+
+                document.getElementById("response").innerHTML = responseData;
+
+            } else {
+                console.error("Request error. Status: " + response.status);
+            }
+        } catch (error) {
+            console.error("Error: " + error.message);
+        }
+    }
+</script>
+</body>
+</html>

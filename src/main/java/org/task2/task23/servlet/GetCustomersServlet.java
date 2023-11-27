@@ -19,44 +19,25 @@ import java.sql.SQLException;
 import java.util.List;
 
 
-public class GetCustomersServlet extends HttpServlet
-implements ServletUtil{
+public class GetCustomersServlet extends AbstractServlet {
 
     private final GetCustomersService service = ServiceFactory.getServiceInstance();
 
-    private static final Logger logger = LoggerFactory.getLogger(GetCustomersServlet.class);
     @Override
     public void doGet(HttpServletRequest request,
                       HttpServletResponse response)
             throws IOException {
 
-        logger.info("doGet(...)");
+        logMethodStart("doGet");
 
-        writeFileToResponse(response, "/WEB-INF/get-customers-form.html");
-    }
-    private void writeFileToResponse (HttpServletResponse response, String relativeFilePath)
-    throws IOException {
-
-        response.setContentType("text/html; charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
-
-        try (PrintWriter out = response.getWriter()) {
-            String filePath = getServletContext().getRealPath(relativeFilePath);
-
-            try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    out.println(line);
-                }
-            }
-        }
+        writeFileToResponse(response, "get-customers-form.html");
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        
-        logger.info("doPost(...)");
+
+        logMethodStart("doPost");
         
         int offset = 0;
 
@@ -114,6 +95,7 @@ implements ServletUtil{
 
     private int parseJsonAsInt(String jsonString, String key) {
 
+        logMethodStart("parseJsonAsInt");
         JsonElement jsonElement = JsonParser.parseString(jsonString);
 
         if (!jsonElement.isJsonObject()) {
