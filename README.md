@@ -53,16 +53,10 @@ The compiled file will be stored in `target` folder as `task3.war`
 mvn tomcat7:run
 ```
 
-The servlet can be executed in browser by path  `http://localhost:8080/getCustomers'
+The servlet can be executed in browser by path  `http://localhost:8080/task-2-3' . This is the start page. There are possibilities to validate data in the database and invoke /getCustomers-servide
+/GetCustomers end-point is available by path  `http://localhost:8080/task-2-3/getCustomer'
 
-## Run in docker
-After compile app just run next
-```
-docker run -i --rm --name task3-app -p 8080:8080 \
-  -v ${PWD}/target/hello.war:/usr/local/tomcat/webapps/taks3.war \
-  tomcat:9.0-jre8-alpine
-```
 
-And for opening the Servlet run in browser `http://localhost:8080/getCustomers'
+And for opening the Servlet run in browser `http://localhost:8080/task-2-3/getCustomers'
 
-To create or validate data in db run `http://localhost:8080/validateData'
+To create or validate data in db run `http://localhost:8080/task-2-3/validateData'
