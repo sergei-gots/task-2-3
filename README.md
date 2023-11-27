@@ -53,7 +53,9 @@ The compiled file will be stored in `target` folder as `task3.war`
 mvn tomcat7:run
 ```
 
-The servlet can be executed in browser by path  `http://localhost:8080/task-2-3' . This is the start page. There are possibilities to validate data in the database and invoke /getCustomers-servide
+
+The servlet can be executed in browser by path  `http://localhost:8080/task-2-3' . 
+This is the start page. There are possibilities to validate data in the database and invoke /getCustomers-servide
 /GetCustomers end-point is available by path  `http://localhost:8080/task-2-3/getCustomer'
 
 
