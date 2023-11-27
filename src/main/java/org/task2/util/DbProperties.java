@@ -9,18 +9,30 @@ import java.util.Properties;
 
 public class DbProperties {
 
+    private boolean loaded;
     private final String driver;
     private final String url;
     private final String username;
     private final String password;
 
-    public static DbProperties loadProperties(String resourceFilename) {
-        return new DbProperties(resourceFilename);
+    private static DbProperties dbProperties;
 
+    static {
+        try {
+            dbProperties = new DbProperties("db.properties");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private DbProperties(String filename) {
+    public static DbProperties getDbProperties () {
+           return dbProperties;
+     }
+
+    private DbProperties(String filename) throws Exception {
         Properties properties = new Properties();
+
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(filename)) {
             properties.load(is);
             driver = properties.getProperty("driver", "");
@@ -29,7 +41,15 @@ public class DbProperties {
             password = properties.getProperty("password", "");
 
         } catch (IOException e) {
-            throw new RuntimeException("Could not load " + filename, e);
+            System.out.println("Could not load " + filename + ". cause =" + e.getCause());
+            throw e;
+        }
+        try {
+            loadDriver();
+        }
+        catch (ClassNotFoundException e) {
+            System.out.println("Could not load driver " + driver + ". cause: " + e.getCause());
+            throw e;
         }
     }
 

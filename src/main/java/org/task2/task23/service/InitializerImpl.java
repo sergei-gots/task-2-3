@@ -10,23 +10,27 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class InitializerImpl implements Initializer {
 
     public final static int TABLE_I_COUNT_BY_DEFAULT = 30;
-    public final static int CUSTOMER_COUNT_BY_DEFAULT = 400;
+    public final static int CUSTOMER_COUNT_BY_DEFAULT = 200_000;
     private int tableICount;
     private int customerCount;
 
     private Connection connection = null;
     private final Random random = new Random();
     private final Faker faker = new Faker();
-
-    static private final DbProperties dbProperties
-            = DbProperties.loadProperties("db.properties");
+    private static final Logger logger = LoggerFactory.getLogger(InitializerImpl.class);
+    private static final DbProperties dbProperties = DbProperties.getDbProperties();
 
     @Override
     public void validateData() throws SQLException {
+
+        logger.info("validateData()");
 
         try {
             connection = dbProperties.getConnection();
@@ -40,23 +44,27 @@ public class InitializerImpl implements Initializer {
 
             validateTableCustomerData();
 
-        }
-        finally {
+        } finally {
             DbUtils.closeQuietly(connection);
         }
     }
 
     private boolean doesTableExist(String tableName) throws SQLException {
+
+        logger.info("doesTableExist(tableName={})", tableName);
+
         PreparedStatement sqlStatement = null;
         ResultSet resultSet = null;
         try {
             sqlStatement = connection.prepareStatement(
-                "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = ?)"
+                    "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = ?)"
             );
             sqlStatement.setString(1, tableName);
             resultSet = sqlStatement.executeQuery();
             resultSet.next();
-            return resultSet.getBoolean(1);
+            boolean result = resultSet.getBoolean(1);
+            logger.info("doesTableExist return {})", result);
+            return result;
 
         } catch (SQLException e) {
             DbUtils.closeQuietly(sqlStatement);
@@ -64,30 +72,38 @@ public class InitializerImpl implements Initializer {
             throw e;
         }
     }
-    private void validateTablesI() throws SQLException{
+
+    private void validateTablesI() throws SQLException {
+
+        logger.info("validateTableI()");
+
         tableICount = 0;
         while (doesTableExist("table_" + tableICount)) {
             tableICount++;
         }
-        while(tableICount < TABLE_I_COUNT_BY_DEFAULT) {
+        logger.info("validateTableI having tableICount = {}", tableICount );
+
+        while (tableICount < TABLE_I_COUNT_BY_DEFAULT) {
             createTableI(tableICount++);
         }
     }
 
-    private void createTableCustomer() throws SQLException{
+    private void createTableCustomer() throws SQLException {
+
+        logger.info("createTableCustomer()");
 
         PreparedStatement sqlStatement = null;
         try {
             sqlStatement = connection.prepareStatement(
-                            """
-                CREATE TABLE customer (
-                    customer_id VARCHAR(200) NOT NULL PRIMARY KEY,
-                    col_1 INTEGER,
-                    col_2 INTEGER,
-                    col_3 INTEGER,
-                    col_4 INTEGER,
-                    col_5 INTEGER
-                )""");
+                    """
+                            CREATE TABLE customer (
+                                customer_id VARCHAR(200) NOT NULL PRIMARY KEY,
+                                col_1 INTEGER,
+                                col_2 INTEGER,
+                                col_3 INTEGER,
+                                col_4 INTEGER,
+                                col_5 INTEGER
+                            )""");
             sqlStatement.execute();
 
         } catch (SQLException e) {
@@ -96,12 +112,13 @@ public class InitializerImpl implements Initializer {
         }
     }
 
-    private void createTableI(int i) throws SQLException{
+    private void createTableI(int i) throws SQLException {
 
+        logger.info("createTableI(i={})", i);
         PreparedStatement sqlStatement = null;
         try {
             sqlStatement = connection.prepareStatement(
-                    "CREATE TABLE table_" +  i +
+                    "CREATE TABLE table_" + i +
                             """
                                     (   customer_id VARCHAR(200) NOT NULL PRIMARY KEY REFERENCES customer (customer_id),
                                         col_1 INTEGER,
@@ -119,22 +136,24 @@ public class InitializerImpl implements Initializer {
         }
     }
 
-    private void createTableMany() throws SQLException{
+    private void createTableMany() throws SQLException {
+
+        logger.info("createTableMany()");
 
         PreparedStatement sqlStatement = null;
         try {
             sqlStatement = connection.prepareStatement("""
-                CREATE TABLE table_many (
-                    customer_id VARCHAR(200) NOT NULL REFERENCES customer (customer_id),
-                    groupId INT NOT NULL
-                )""");
+                    CREATE TABLE table_many (
+                        customer_id VARCHAR(200) NOT NULL REFERENCES customer (customer_id),
+                        groupId INT NOT NULL
+                    )""");
             sqlStatement.execute();
 
             sqlStatement = connection.prepareStatement("""
-                    ALTER TABLE table_many
-                                        ADD CONSTRAINT unique_customer_group
-                                        UNIQUE (customer_id, groupId)
-                """);
+                        ALTER TABLE table_many
+                                            ADD CONSTRAINT unique_customer_group
+                                            UNIQUE (customer_id, groupId)
+                    """);
             sqlStatement.execute();
         } catch (SQLException e) {
             DbUtils.closeQuietly(sqlStatement);
@@ -142,7 +161,10 @@ public class InitializerImpl implements Initializer {
         }
     }
 
-    private void validateTableCustomerData() throws SQLException{
+    private void validateTableCustomerData() throws SQLException {
+        logger.info("validateTableCustomerData()");
+
+        alterIndexIdxCustomerIdOnCustomer(false);
         PreparedStatement sqlStatement = null;
         ResultSet resultSet = null;
         try {
@@ -155,7 +177,14 @@ public class InitializerImpl implements Initializer {
 
             while (customerCount++ < CUSTOMER_COUNT_BY_DEFAULT) {
                 generateCustomer();
+                if (customerCount%1000 == 0) {
+                    logger.info(
+                            "validateTableCustomerData() : current customerCount={}",
+                            customerCount);
+                }
+
             }
+            alterIndexIdxCustomerIdOnCustomer(true);
 
         } catch (SQLException e) {
             DbUtils.closeQuietly(resultSet);
@@ -165,16 +194,17 @@ public class InitializerImpl implements Initializer {
 
     }
 
-    /** @return value of the generated customer_id.
+    /**
+     * @return value of the generated customer_id.
      */
     private String generateCustomer() throws SQLException {
         PreparedStatement sqlStatement = null;
 
         try {
             sqlStatement = connection.prepareStatement("""
-                INSERT INTO Customer (customer_id, col_1, col_2, col_3, col_4, col_5)
-                            VALUES (?, ?, ?, ?, ?, ?)
-            """);
+                        INSERT INTO Customer (customer_id, col_1, col_2, col_3, col_4, col_5)
+                                    VALUES (?, ?, ?, ?, ?, ?)
+                    """);
             String customerId = generateCustomerId();
             sqlStatement.setString(1, customerId);
             for (int i = 2; i < 7; i++) {
@@ -214,6 +244,25 @@ public class InitializerImpl implements Initializer {
             throw e;
         }
 
+    }
+
+    private void alterIndexIdxCustomerIdOnCustomer(boolean enable)  {
+        logger.info("alterIndexIdxCustomerIdOnCustomer(enable={})", enable );
+
+        PreparedStatement sqlStatement = null;
+
+        try {
+            sqlStatement = connection.prepareStatement(
+                    enable ?
+                            "CREATE INDEX idx_customer_id ON customer (customer_id)" :
+                            "DROP INDEX idx_customer_id"
+            );
+            sqlStatement.execute();
+
+        } catch (SQLException e) {
+            logger.info("alterIndexIdxCustomerIdOnCustomer. SQLException caught", e );
+            DbUtils.closeQuietly(sqlStatement);
+        }
     }
 
 }
