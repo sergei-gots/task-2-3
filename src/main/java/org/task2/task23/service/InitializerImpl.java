@@ -17,13 +17,8 @@ import org.slf4j.LoggerFactory;
 
 
 public class InitializerImpl implements Initializer {
-
-    public final static int COL_I_AMOUNT = 5;
-    public final static int TOTAL_COL_AMOUNT = COL_I_AMOUNT + 1;
-    public final static int TABLE_I_COUNT_BY_DEFAULT = 30;
-    public final static int CUSTOMER_COUNT_BY_DEFAULT = 10_000;
-
-    public final static String[] INSERT_INTO_TABLE_I_STATEMENTS = new String[TABLE_I_COUNT_BY_DEFAULT];
+    public final static String[] INSERT_INTO_TABLE_I_STATEMENTS
+            = new String[TABLE_I_COUNT_BY_DEFAULT];
 
     static {
         Arrays.setAll(INSERT_INTO_TABLE_I_STATEMENTS,
@@ -226,7 +221,7 @@ public class InitializerImpl implements Initializer {
             sqlStatement = connection.prepareStatement(INSERT_INTO_TABLE_I_STATEMENTS[tableIndex]);
 
             sqlStatement.setString(1, customerId);
-            for (int i = 2; i <= TOTAL_COL_AMOUNT; i++) {
+            for (int i = 2; i <= TOTAL_COL_COUNT; i++) {
                 sqlStatement.setInt(i, random.nextInt());
             }
             sqlStatement.execute();
@@ -252,7 +247,7 @@ public class InitializerImpl implements Initializer {
                     """);
             String customerId = generateCustomerId();
             sqlStatement.setString(1, customerId);
-            for (int i = 2; i <= TOTAL_COL_AMOUNT; i++) {
+            for (int i = 2; i <= TOTAL_COL_COUNT; i++) {
                 sqlStatement.setInt(i, random.nextInt());
             }
             sqlStatement.execute();

@@ -4,13 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.task2.task23.entity.Customer;
+import org.task2.task23.dto.CustomerInfo;
 import org.task2.task23.service.GetCustomersService;
 import org.task2.task23.service.ServiceFactory;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -38,6 +35,7 @@ public class GetCustomersServlet extends AbstractServlet {
             throws IOException {
 
         logMethodStart("doPost");
+        long t0 = System.currentTimeMillis();
         
         int offset = 0;
 
@@ -81,9 +79,18 @@ public class GetCustomersServlet extends AbstractServlet {
             out.println("<br><br> The result:<br><br>");
 
             logger.info("service.get5000Customers will be invoked next.");
-            List<Customer> customerList = service.get5000Customers(offset);
-            logger.info("new Gson().toJson wiill be invoked next");
-            out.write(new Gson().toJson(customerList));
+            List<CustomerInfo> customerList = service.get5000Customers(offset);
+
+            logger.info("new Gson().toJson will be invoked next");
+            String jsonResult = new Gson().toJson(customerList);
+            String executionTimeReport = "/GetCustomers took  on the Server in total "
+                    + (System.currentTimeMillis() - t0) + " ms.";
+            out.println(executionTimeReport);
+            out.println("<br><br>");
+            out.write(jsonResult);
+            logger.info(executionTimeReport);
+
+
             out.println("</body></html>");
             logger.info("doPost completed.");
         } catch (SQLException e) {
