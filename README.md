@@ -54,8 +54,8 @@ mvn tomcat7:run
 ```
 
 The servlet can be executed in browser by path <a href="http://localhost:8080/task-2-3/start">http://localhost:8080/task-2-3/start</a>
-This is the start page. There are possibilities to validate data in the database and invoke /getCustomers-servide
-/GetCustomers end-point is available by path  `http://localhost:8080/task-2-3/getCustomer'
+This is the start page. There are possibilities to validate data in the database and use /getCustomers service
+end-point is available by path  `http://localhost:8080/task-2-3/getCustomer'
 
 
 And for opening the Servlet run in browser `http://localhost:8080/task-2-3/getCustomers'
