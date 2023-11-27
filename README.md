@@ -49,6 +49,9 @@ mvn clean install
 The compiled file will be stored in `target` folder as `task3.war`
 
 ## Run app 
+<br>
+Before you run the app be sure you have appropriate database properties in the <a href="https://github.com/sergei-gots/task-2-3/blob/master/src/main/resources/db.properties">/resources/db.properties</a>
+<br>To run the tomcat server and the /getCustomer application which will be deployed out there use:
 ```
 mvn tomcat7:run
 ```
@@ -60,4 +63,17 @@ end-point is available by path  `http://localhost:8080/task-2-3/getCustomer'
 
 And for opening the Servlet run in browser `http://localhost:8080/task-2-3/getCustomers'
 
-To create or validate data in db run `http://localhost:8080/task-2-3/validateData'
+### Data validation
+
+In order to create or validate data in db run `http://localhost:8080/task-2-3/validateData'.
+Validation is implemented here in order to have possibiltiy to check and fix the next cases:  <br>
+<li>if there are all the used tables created and creates them if it necessarty
+<li>checks that customers count in the table customer is not less than it is required and creates the missing count of customers creating all the depending data in all the rest tables.
+<br>One can run validation data in cases:<br>
+<li> The first start on the server when there is no data in the db
+<li> if the count of customers is less than required (it is defined as a constant: 
+
+<b>org.task2.task23.service.DbConstants.CUSTOMER_COUNT_BY_DEFAULT = 500_000;</b>
+
+<li> some tables are missing. Note that is not a customer table, there won't be any additional data entries created
+
