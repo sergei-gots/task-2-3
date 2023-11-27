@@ -49,6 +49,9 @@ mvn clean install
 The compiled file will be stored in `target` folder as `task3.war`
 
 ## Run app 
+<br>
+Before you run the app be sure you have appropriate database properties in the <a href="https://github.com/sergei-gots/task-2-3/blob/master/src/main/resources/db.properties">/resources/db.properties</a>
+To run the tomcat server and the /getCustomer application which will be deployed out there use:
 ```
 mvn tomcat7:run
 ```
